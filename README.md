@@ -15,7 +15,7 @@ This implementation is perfect for compatibility with the CLI and provides outst
 
 This is an exceedingly powerful implementation: consequently it is also  __*extremely*__ complex and a little challenging for everyday users.
 
-For example to, read 1 parameter from the command line you need can use this code:
+For example to, read one parameter from the command line you can use this code:
 
 [See full Example](https://learn.microsoft.com/en-us/dotnet/standard/commandline/define-commands#define-arguments)
 
@@ -87,6 +87,9 @@ else
     Console.WriteLine($"Connecting to host '{ipAddress}'");
 
 ```
+Using the Command Line API, when there is a validation failure, you get a message like this:
+    
+    ![image](https://user-images.githubusercontent.com/20747839/198894408-851e2c44-19f8-4538-a13c-6a0e3e001943.png)
 
 ## Multi-Argument Example
 
