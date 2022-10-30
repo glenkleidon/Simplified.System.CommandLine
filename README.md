@@ -81,10 +81,12 @@ var ipAddress = SimplifiedCommandLineHandler
 
          });
 
+
 if (ipAddress.ErrorOrEmpty)
     Console.Error.WriteLine($"Cant connect to an invalid IP Address");
 else
-    Console.WriteLine($"Connecting to host '{ipAddress}'");
+    Console.WriteLine($"Connecting to host '{ipAddress.Value}'");
+
 
 ```
 Using the Command Line API, when there is a validation failure, you get a message like this:
