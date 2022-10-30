@@ -56,23 +56,26 @@ You can certainly validate the results in the Handler, but there is support for 
 
 ## What does this Package do?
 
-The purpose of this package, as the name suggests, is to provide a simpler approach for the common use case: __**Read in a parameter, validate it, and make it available for use**__
+The purpose of this package, as the name suggests, is to provide a simpler approach for the common use case: __**Read in parameters, validate them, and make it available to use**__
+
+The power of the underlying `System.CommandLine` is still available for more advanced handling.
 
 
 # Getting Started.
 
 TODO: <nuget package>
 
-## Read an IP address from the command line (validating that is in the correct format)
+## Single Argument Example
+### Read an IP address from the command line (validating that is in the correct format)
+    
 
 ```c#
 using Simplified.System.Commandline;
 
 var ipAddress = SimplifiedCommandLineHandler
      .FirstParameter(args,
-         new ParameterInfo<string>("IP Address")
+         new ParameterInfo<string>("IP Address", "The IP of the Computer to connect to.")
          {
-             Description = "The IP of the Computer to connect to.",
              ValidationMessage = $"Must be a valid IP4 address",
              ValidationExpression = @"((\d){1,3}\.){3}\d{1,3}\b"
 
@@ -83,14 +86,19 @@ if (ipAddress.ErrorOrEmpty)
 else
     Console.WriteLine($"Connecting to host '{ipAddress}'");
 
-   
-    
-
-
 ```
 
+## Multi-Argument Example
 
-
+## Adding Options 
+Not yet implemented... use CommandLine Options for now.
+    
+## Modifying Help
+Not yet implemented... use CommandLine Options for now.
+   
+## Alternate Validators 
+The static `RegExArgumentValidator<T>` class supports `Regex` and the __No Validator__ case. 
+    
 
 
 
