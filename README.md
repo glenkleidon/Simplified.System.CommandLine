@@ -87,7 +87,7 @@ If there is a validation failure, you get a message like this:
     
 You see that Help messages are also available.
     
-A slight variation using more a fluent syntax with the `FirstParameter` method is also available - it is more consistent with the approach used (Model Binding)[https://learn.microsoft.com/en-us/dotnet/standard/commandline/model-binding#custom-validation-and-binding])
+A slight variation using more a fluent syntax with the `FirstParameter` method is also available - it is more consistent with the approach used [Model Binding](https://learn.microsoft.com/en-us/dotnet/standard/commandline/model-binding#custom-validation-and-binding)
 
 ```c#
 using Simplified.System.Commandline;
