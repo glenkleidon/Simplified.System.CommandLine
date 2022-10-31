@@ -1,7 +1,7 @@
 # Simplified.System.CommandLine
 A simplifying wrapper for the Microsoft System.CommandLine package.
 
-## What does the System.CommandLine package do.
+## What does the System.CommandLine package do?
 
 Microsoft currently has a new Command line Interface for Console Apps under development.
 
@@ -82,7 +82,7 @@ var ipAddress = SimplifiedCommandLineHandler
          });
 
 
-if (ipAddress.ErrorOrEmpty)
+if (ipAddress.IsErrorOrEmpty)
     Console.Error.WriteLine($"Cant connect to an invalid IP Address");
 else
     Console.WriteLine($"Connecting to host '{ipAddress.Value}'");
