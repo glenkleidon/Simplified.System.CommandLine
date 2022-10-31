@@ -1,4 +1,4 @@
-using System.CommandLine;
+﻿using System.CommandLine;
 using System.CommandLine.Parsing;
 using System.Text.RegularExpressions;
 using static Simplified.System.Commandline.SimplifiedCommandLineHandler;
@@ -37,7 +37,7 @@ namespace Simplified.System.Commandline
         private const string ValidationPrefix = "<{0}> (Param #{1}:{2})";
         private const string ValidationPrefixIncorrect = ValidationPrefix + " incorrect";
 
-        public T? Value { get; set ; }
+        public T? Value { get; set; }
 
         private Regex? regex = null;
 
@@ -75,7 +75,8 @@ namespace Simplified.System.Commandline
         public int Index { get; set; } = 0;
         public string Name { get; set; }
         private Argument<T> commandLineArgument;
-        public Argument<T>? CommandLineArgument {
+        public Argument<T>? CommandLineArgument
+        {
             get
             {
                 commandLineArgument.Name = Name;
@@ -119,7 +120,8 @@ namespace Simplified.System.Commandline
         public bool IsErrorOrEmpty => Empty || ErrorMessage != String.Empty;
     }
 
-    public struct FirstParamResult  {
+    public struct FirstParamResult
+    {
         private bool errorOrEmpty;
         private string paramValue;
 
@@ -129,8 +131,8 @@ namespace Simplified.System.Commandline
             paramValue = value ?? String.Empty;
 
         }
-        public string Value { get => paramValue;}
-        public bool ErrorOrEmpty { get=> errorOrEmpty; }
+        public string Value { get => paramValue; }
+        public bool IsErrorOrEmpty { get => errorOrEmpty; }
         public static implicit operator string(FirstParamResult firstParamResult) => firstParamResult.Value;
     }
 
@@ -143,7 +145,7 @@ namespace Simplified.System.Commandline
             list.Add(argInfo);
             ExtractParameters(args, list);
             return new FirstParamResult(argInfo?.Value ?? String.Empty, !argInfo?.IsErrorOrEmpty ?? true);
-         }
+        }
 
 
 
@@ -160,6 +162,13 @@ namespace Simplified.System.Commandline
             return cmd;
         }
 
+        public static RootCommand ExtractParameter(string[] args, IParameterInfo argInfo)
+        {
+            var argInfos = new List<IParameterInfo>();
+            argInfos.Add(argInfo);
+            return ExtractParameters(args, argInfos);
+        }
+
         public static class RegExArgumentValidator<T>
         {
             public static void SetValidator(ParameterInfo<T> info, string pattern, RegexOptions options = RegexOptions.Compiled)
@@ -170,27 +179,35 @@ namespace Simplified.System.Commandline
             }
 
             public static void SetValidator(ParameterInfo<T> info)
-
             {
                 info.CommandLineArgument?.AddValidator(
                 arg =>
                      {
+                         info.Empty = true;
                          info.Value = arg.GetValueOrDefault<T>();
-                         if (info.Value != null && info.ValidationExpression!=null)
+                         if (info.Value != null)
                          {
-                             var cValue = Convert.ToString(info.Value);
-                             if (cValue != null)
+
+                             if (info.ValidationExpression == null)
+                                 info.Empty = false;
+                             else
                              {
-                                 var matches = info.ValidationRegex?.Matches(cValue);
-                                 if (matches?.Count != 1)
+                                 var cValue = Convert.ToString(info.Value);
+                                 if (cValue != null)
                                  {
-                                     info.ErrorMessage = $"{info.ValidationMessage} [Regex Validator]";
-                                     arg.ErrorMessage = info.ErrorMessage;
+                                     var matches = info.ValidationRegex?.Matches(cValue);
+                                     if (matches?.Count == 1)
+                                         info.Empty = false;
+                                     else
+                                     {
+                                         info.ErrorMessage = $"{info.ValidationMessage} [Regex Validator]";
+                                         arg.ErrorMessage = info.ErrorMessage;
+                                     }
                                  }
                              }
                          }
                      }
-                     );
+                );
             }
 
         }
