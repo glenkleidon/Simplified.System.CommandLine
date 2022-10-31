@@ -82,8 +82,8 @@ The simplest form of this is:
         Console.WriteLine($"Connecting to host '{ipAddress.Value}'");
 ```
 If there is a validation failure, you get a message like this:
-    
-    ![image](./resources/InvalidIP_sc.png?raw=true)
+
+![image](/resources/invalidip_sc.png)
     
 You see that Help messages are also available.
     
