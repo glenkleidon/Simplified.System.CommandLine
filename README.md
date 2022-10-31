@@ -83,7 +83,7 @@ The simplest form of this is:
 ```
 If there is a validation failure, you get a message like this:
     
-    ![image](https://user-images.githubusercontent.com/20747839/198894408-851e2c44-19f8-4538-a13c-6a0e3e001943.png?raw=true)
+    ![image](./resources/InvalidIP_sc.png?raw=true)
     
 You see that Help messages are also available.
     
