@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.CommandLine;
 using System.CommandLine.Parsing;
+using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using static Simplified.System.Commandline.SimplifiedCommandLineHandler;
@@ -126,7 +127,7 @@ namespace Simplified.System.Commandline
         public bool Empty { get; set; }
         public string ErrorMessage { get; set; }
 
-        public bool IsErrorOrEmpty => Empty || ErrorMessage != String.Empty;
+        public bool IsErrorOrEmpty => Empty || !(String.IsNullOrEmpty(ErrorMessage));
 
         public ValidateSymbolResult<ArgumentResult> Validator { get; set; }
         public int ValidationMaxMatches { get; set; } = 1;
@@ -212,15 +213,20 @@ namespace Simplified.System.Commandline
                                  var cValue = Convert.ToString(info.Value);
                                  if (cValue != null)
                                  {
+                                     info.Empty = false;
                                      var matches = info.ValidationRegex?.Matches(cValue);
                                      if (matches?.Count == 1)
-                                         info.Empty = false;
+                                     {
+                                         arg.ErrorMessage = null;
+                                     }
                                      else
                                      {
-                                         info.ErrorMessage = $"{info.ValidationMessage} [Regex Validator]";
+                                         info.ErrorMessage = $"{String.Format(info.ValidationMessage, info.Name)} [Regex Validator]";
                                          arg.ErrorMessage = info.ErrorMessage;
                                      }
                                  }
+                                 else 
+                                   info.Empty = true;
                              }
                          }
                      };
