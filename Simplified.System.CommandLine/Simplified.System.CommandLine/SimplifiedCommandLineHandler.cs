@@ -1,5 +1,8 @@
-﻿using System.CommandLine;
+﻿using System;
+using System.Collections.Generic;
+using System.CommandLine;
 using System.CommandLine.Parsing;
+using System.Linq;
 using System.Text.RegularExpressions;
 using static Simplified.System.Commandline.SimplifiedCommandLineHandler;
 
@@ -16,13 +19,14 @@ namespace Simplified.System.Commandline
     public interface IParameterInfo
     {
         IEnumerable<string> Aliases { get; }
-        Argument? Arg { get; }
+        Argument Arg { get; }
         string Description { get; set; }
         int Index { get; set; }
         string Name { get; set; }
         RegexOptions ValidationOptions { get; set; }
         string ValidationExpression { get; set; }
-        Regex? ValidationRegex { get; set; }
+        Regex ValidationRegex { get; set; }
+        int ValidationMaxMatches { get; set; }
         string ValidationMessage { get; set; }
 
         void AddAlias(string alias);
@@ -30,6 +34,9 @@ namespace Simplified.System.Commandline
         string ErrorMessage { get; set; }
         bool IsErrorOrEmpty { get; }
         bool Empty { get; set; }
+        ValidateSymbolResult<ArgumentResult> Validator { get; set; }
+        void ConnectValidator();
+
     }
 
     public class ParameterInfo<T> : IParameterInfo
@@ -37,9 +44,9 @@ namespace Simplified.System.Commandline
         private const string ValidationPrefix = "<{0}> (Param #{1}:{2})";
         private const string ValidationPrefixIncorrect = ValidationPrefix + " incorrect";
 
-        public T? Value { get; set; }
+        public T Value { get; set; }
 
-        private Regex? regex = null;
+        private Regex regex = null;
 
         public RegexOptions ValidationOptions { get; set; } = RegexOptions.Compiled | RegexOptions.IgnoreCase;
         public string ValidationExpression
@@ -75,7 +82,7 @@ namespace Simplified.System.Commandline
         public int Index { get; set; } = 0;
         public string Name { get; set; }
         private Argument<T> commandLineArgument;
-        public Argument<T>? CommandLineArgument
+        public Argument<T> CommandLineArgument
         {
             get
             {
@@ -94,6 +101,13 @@ namespace Simplified.System.Commandline
             return String.Format(text, Name, Index + 1, typeof(T).Name,
                   String.Join(",", Aliases));
         }
+
+        public void ConnectValidator()
+        {
+            if (Validator==null)
+                RegExArgumentValidator<T>.SetValidator(this);
+        }
+
         private string validationMessage = $"{ValidationPrefixIncorrect}.";
         public string ValidationMessage
         {
@@ -101,23 +115,21 @@ namespace Simplified.System.Commandline
             set => validationMessage = $"{ValidationPrefixIncorrect}:\r\n    {value}";
         }
 
-        Argument? IParameterInfo.Arg => CommandLineArgument;
+        Argument IParameterInfo.Arg => CommandLineArgument;
 
-        public Regex? ValidationRegex
+        public Regex ValidationRegex
         {
             get => regex;
-            set
-            {
-                regex = value;
-                if (regex != null)
-                    RegExArgumentValidator<T>.SetValidator(this);
-            }
+            set => regex = value;
         }
 
         public bool Empty { get; set; }
         public string ErrorMessage { get; set; }
 
         public bool IsErrorOrEmpty => Empty || ErrorMessage != String.Empty;
+
+        public ValidateSymbolResult<ArgumentResult> Validator { get; set; }
+        public int ValidationMaxMatches { get; set; } = 1;
     }
 
     public struct FirstParamResult
@@ -156,8 +168,13 @@ namespace Simplified.System.Commandline
             foreach (var info in sorted)
             {
                 if (info.Arg != null)
+                {
+                    info.ConnectValidator();
                     cmd.AddArgument(info.Arg);
+                }
             }
+            
+                
             cmd.Invoke(args);
             return cmd;
         }
@@ -180,7 +197,7 @@ namespace Simplified.System.Commandline
 
             public static void SetValidator(ParameterInfo<T> info)
             {
-                info.CommandLineArgument?.AddValidator(
+                info.Validator =
                 arg =>
                      {
                          info.Empty = true;
@@ -206,8 +223,10 @@ namespace Simplified.System.Commandline
                                  }
                              }
                          }
-                     }
-                );
+                     };
+                info.CommandLineArgument?.AddValidator(info.Validator);
+                
+
             }
 
         }
