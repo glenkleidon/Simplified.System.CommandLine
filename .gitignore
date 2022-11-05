@@ -348,3 +348,4 @@ MigrationBackup/
 
 # Ionide (cross platform F# VS Code tools) working folder
 .ionide/
+Simplified.System.CommandLine/Simplified.System.CommandLine.public.snk
