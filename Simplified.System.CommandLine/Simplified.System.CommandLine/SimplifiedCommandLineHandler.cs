@@ -8,146 +8,6 @@ using static Simplified.System.Commandline.SimplifiedCommandLineHandler;
 
 namespace Simplified.System.Commandline
 {
-    public enum ParamId { Name, Index, TypeName, Alias };
-    public static class SimplifiedCommandLineParameterExtensions
-    {
-        public static string AsFormatId(this ParamId formatIndex)
-        {
-            return $"{{(int)formatIndex}}";
-        }
-    }
-    public interface IParameterInfo
-    {
-        IEnumerable<string> Aliases { get; }
-
-        Argument Arg { get; }
-
-        string Description { get; set; }
-
-        int Index { get; set; }
-
-        string Name { get; set; }
-
-        RegexOptions ValidationOptions { get; set; }
-
-        string ValidationExpression { get; set; }
-
-        Regex ValidationRegex { get; set; }
-
-        int ValidationMaxMatches { get; set; }
-
-        string ValidationMessage { get; set; }
-
-        bool AllowEmpty { get; set; }
-
-        void AddAlias(string alias);
-        void RemoveAlias(string alias);
-        string ErrorMessage { get; set; }
-        bool IsErrorOrEmpty { get; }
-        bool Empty { get; set; }
-        ValidateSymbolResult<ArgumentResult> Validator { get; set; }
-        void ConnectValidator();
-        Type typeOf { get; }
-        IAsTypedValue NullOrValue { get; }
-
-    }
-
-    public interface IAsTypedValue
-    {
-        DateTime? AsDateTime();
-        double? AsDouble();
-        decimal? AsDecimal();
-        int? AsInt();
-        long? AsInt64();
-        string AsString();
-        bool? AsBool();
-        bool IsNull();
-        bool IsNullOrEmpty();
-    }
-
-    public sealed class AsTypedValue<T> : IAsTypedValue
-    {
-        private readonly T value;
-        public AsTypedValue(T value)
-        {
-            this.value = value;
-
-        }
-        public string AsString()
-        {
-            return value?.ToString();
-        }
-
-        public int? AsInt()
-        {
-            if (typeof(T) == typeof(int) || typeof(T) == typeof(int?))
-                return Convert.ToInt32(value);
-            int v;
-            if (Int32.TryParse(AsString(), out v))
-                return v;
-            return null;
-        }
-        public Int64? AsInt64()
-        {
-            if (typeof(T) == typeof(Int64) || typeof(T) == typeof(Int64?))
-                return Convert.ToInt64(value);
-            Int64 v;
-            if (Int64.TryParse(AsString(), out v))
-                return v;
-            return null;
-        }
-
-        public double? AsDouble()
-        {
-            if (typeof(T) == typeof(double) || typeof(T) == typeof(double?))
-                return Convert.ToDouble(value);
-            double v;
-            if (Double.TryParse(AsString(), out v))
-                return v;
-            return null;
-        }
-
-        public DateTime? AsDateTime()
-        {
-            if (typeof(T) == typeof(DateTime) || typeof(T) == typeof(DateTime?))
-                return Convert.ToDateTime(value);
-            DateTime v;
-            if (DateTime.TryParse(AsString(), out v))
-                return v;
-            return null;
-
-        }
-
-        public decimal? AsDecimal()
-        {
-            if (typeof(T) == typeof(Decimal) || typeof(T) == typeof(DateTime?))
-                return Convert.ToDecimal(value);
-            Decimal v;
-            if (Decimal.TryParse(AsString(), out v))
-                return v;
-            return null;
-        }
-
-        public bool? AsBool()
-        {
-            if (typeof(T) == typeof(bool) || typeof(T) == typeof(bool?))
-                return Convert.ToBoolean(value);
-            bool v;
-            if (bool.TryParse(AsString(), out v))
-                return v;
-            return null;
-        }
-
-        public bool IsNull()
-        {
-            return AsString() == null;
-        }
-        public bool IsNullOrEmpty()
-        {
-            return string.IsNullOrEmpty(AsString());
-        }
-
-    }
 
     public class ParameterInfo<T> : IParameterInfo
     {
@@ -236,7 +96,7 @@ namespace Simplified.System.Commandline
         public bool Empty { get; set; }
         public string ErrorMessage { get; set; }
 
-        public bool IsErrorOrEmpty => (Empty && !AllowEmpty ) || !(String.IsNullOrEmpty(ErrorMessage));
+        public bool IsErrorOrEmpty => (Empty && !AllowEmpty) || !(String.IsNullOrEmpty(ErrorMessage));
 
         public ValidateSymbolResult<ArgumentResult> Validator { get; set; }
         public int ValidationMaxMatches { get; set; } = 1;
@@ -299,8 +159,6 @@ namespace Simplified.System.Commandline
                     cmd.AddArgument(info.Arg);
                 }
             }
-
-
             cmd.Invoke(args);
             return cmd;
         }
@@ -365,7 +223,5 @@ namespace Simplified.System.Commandline
             }
 
         }
-
-
     }
 }
