@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.CommandLine;
 using System.CommandLine.Parsing;
-using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using static Simplified.System.Commandline.SimplifiedCommandLineHandler;
@@ -20,15 +19,26 @@ namespace Simplified.System.Commandline
     public interface IParameterInfo
     {
         IEnumerable<string> Aliases { get; }
+
         Argument Arg { get; }
+
         string Description { get; set; }
+
         int Index { get; set; }
+
         string Name { get; set; }
+
         RegexOptions ValidationOptions { get; set; }
+
         string ValidationExpression { get; set; }
+
         Regex ValidationRegex { get; set; }
+
         int ValidationMaxMatches { get; set; }
+
         string ValidationMessage { get; set; }
+
+        bool AllowEmpty { get; set; }
 
         void AddAlias(string alias);
         void RemoveAlias(string alias);
@@ -37,6 +47,105 @@ namespace Simplified.System.Commandline
         bool Empty { get; set; }
         ValidateSymbolResult<ArgumentResult> Validator { get; set; }
         void ConnectValidator();
+        Type typeOf { get; }
+        IAsTypedValue NullOrValue { get; }
+
+    }
+
+    public interface IAsTypedValue
+    {
+        DateTime? AsDateTime();
+        double? AsDouble();
+        decimal? AsDecimal();
+        int? AsInt();
+        long? AsInt64();
+        string AsString();
+        bool? AsBool();
+        bool IsNull();
+        bool IsNullOrEmpty();
+    }
+
+    public sealed class AsTypedValue<T> : IAsTypedValue
+    {
+        private readonly T value;
+        public AsTypedValue(T value)
+        {
+            this.value = value;
+
+        }
+        public string AsString()
+        {
+            return value?.ToString();
+        }
+
+        public int? AsInt()
+        {
+            if (typeof(T) == typeof(int) || typeof(T) == typeof(int?))
+                return Convert.ToInt32(value);
+            int v;
+            if (Int32.TryParse(AsString(), out v))
+                return v;
+            return null;
+        }
+        public Int64? AsInt64()
+        {
+            if (typeof(T) == typeof(Int64) || typeof(T) == typeof(Int64?))
+                return Convert.ToInt64(value);
+            Int64 v;
+            if (Int64.TryParse(AsString(), out v))
+                return v;
+            return null;
+        }
+
+        public double? AsDouble()
+        {
+            if (typeof(T) == typeof(double) || typeof(T) == typeof(double?))
+                return Convert.ToDouble(value);
+            double v;
+            if (Double.TryParse(AsString(), out v))
+                return v;
+            return null;
+        }
+
+        public DateTime? AsDateTime()
+        {
+            if (typeof(T) == typeof(DateTime) || typeof(T) == typeof(DateTime?))
+                return Convert.ToDateTime(value);
+            DateTime v;
+            if (DateTime.TryParse(AsString(), out v))
+                return v;
+            return null;
+
+        }
+
+        public decimal? AsDecimal()
+        {
+            if (typeof(T) == typeof(Decimal) || typeof(T) == typeof(DateTime?))
+                return Convert.ToDecimal(value);
+            Decimal v;
+            if (Decimal.TryParse(AsString(), out v))
+                return v;
+            return null;
+        }
+
+        public bool? AsBool()
+        {
+            if (typeof(T) == typeof(bool) || typeof(T) == typeof(bool?))
+                return Convert.ToBoolean(value);
+            bool v;
+            if (bool.TryParse(AsString(), out v))
+                return v;
+            return null;
+        }
+
+        public bool IsNull()
+        {
+            return AsString() == null;
+        }
+        public bool IsNullOrEmpty()
+        {
+            return string.IsNullOrEmpty(AsString());
+        }
 
     }
 
@@ -105,7 +214,7 @@ namespace Simplified.System.Commandline
 
         public void ConnectValidator()
         {
-            if (Validator==null)
+            if (Validator == null)
                 RegExArgumentValidator<T>.SetValidator(this);
         }
 
@@ -127,10 +236,16 @@ namespace Simplified.System.Commandline
         public bool Empty { get; set; }
         public string ErrorMessage { get; set; }
 
-        public bool IsErrorOrEmpty => Empty || !(String.IsNullOrEmpty(ErrorMessage));
+        public bool IsErrorOrEmpty => (Empty && !AllowEmpty ) || !(String.IsNullOrEmpty(ErrorMessage));
 
         public ValidateSymbolResult<ArgumentResult> Validator { get; set; }
         public int ValidationMaxMatches { get; set; } = 1;
+
+        public Type typeOf => typeof(T);
+
+        public IAsTypedValue NullOrValue => new AsTypedValue<T>(Value);
+
+        public bool AllowEmpty { get; set; } = false;
     }
 
     public struct FirstParamResult
@@ -160,10 +275,20 @@ namespace Simplified.System.Commandline
             return new FirstParamResult(argInfo?.Value ?? String.Empty, !argInfo?.IsErrorOrEmpty ?? true);
         }
 
+        private static void VerifyIndexesAreSet(IEnumerable<IParameterInfo> argInfo)
+        {
+            var paramsWithUnsetIndex = argInfo
+                .Where(a => a.Index == 0)
+                .Select(a => a.Name);
 
+            if (paramsWithUnsetIndex.Count() > 1)
+                throw new ArgumentException($"Property 'Index' has not been supplied for arguments {string.Join(",", paramsWithUnsetIndex)} ");
+
+        }
 
         public static RootCommand ExtractParameters(string[] args, IEnumerable<IParameterInfo> argInfo)
         {
+            VerifyIndexesAreSet(argInfo);
             var cmd = new RootCommand();
             var sorted = argInfo.OrderBy(i => i.Index);
             foreach (var info in sorted)
@@ -174,8 +299,8 @@ namespace Simplified.System.Commandline
                     cmd.AddArgument(info.Arg);
                 }
             }
-            
-                
+
+
             cmd.Invoke(args);
             return cmd;
         }
@@ -205,13 +330,14 @@ namespace Simplified.System.Commandline
                          info.Value = arg.GetValueOrDefault<T>();
                          if (info.Value != null)
                          {
-
-                             if (info.ValidationExpression == null)
+                             if (String.IsNullOrEmpty(info.ValidationExpression))
+                             {
                                  info.Empty = false;
+                             }
                              else
                              {
                                  var cValue = Convert.ToString(info.Value);
-                                 if (cValue != null)
+                                 if (!String.IsNullOrEmpty(cValue))
                                  {
                                      info.Empty = false;
                                      var matches = info.ValidationRegex?.Matches(cValue);
@@ -225,13 +351,16 @@ namespace Simplified.System.Commandline
                                          arg.ErrorMessage = info.ErrorMessage;
                                      }
                                  }
-                                 else 
-                                   info.Empty = true;
                              }
+                         }
+                         if (!info.AllowEmpty && info.NullOrValue.IsNullOrEmpty())
+                         {
+                             info.ErrorMessage = $"{String.Format(info.ValidationMessage, info.Name)} [Empty Not Allowed]";
+                             arg.ErrorMessage = info.ErrorMessage;
                          }
                      };
                 info.CommandLineArgument?.AddValidator(info.Validator);
-                
+
 
             }
 
