@@ -8,36 +8,6 @@ using static Simplified.System.Commandline.SimplifiedCommandLineHandler;
 
 namespace Simplified.System.Commandline
 {
-    public enum ParamId { Name, Index, TypeName, Alias };
-    public static class SimplifiedCommandLineParameterExtensions
-    {
-        public static string AsFormatId(this ParamId formatIndex)
-        {
-            return $"{{(int)formatIndex}}";
-        }
-    }
-    public interface IParameterInfo
-    {
-        IEnumerable<string> Aliases { get; }
-        Argument Arg { get; }
-        string Description { get; set; }
-        int Index { get; set; }
-        string Name { get; set; }
-        RegexOptions ValidationOptions { get; set; }
-        string ValidationExpression { get; set; }
-        Regex ValidationRegex { get; set; }
-        int ValidationMaxMatches { get; set; }
-        string ValidationMessage { get; set; }
-
-        void AddAlias(string alias);
-        void RemoveAlias(string alias);
-        string ErrorMessage { get; set; }
-        bool IsErrorOrEmpty { get; }
-        bool Empty { get; set; }
-        ValidateSymbolResult<ArgumentResult> Validator { get; set; }
-        void ConnectValidator();
-
-    }
 
     public class ParameterInfo<T> : IParameterInfo
     {
@@ -104,7 +74,7 @@ namespace Simplified.System.Commandline
 
         public void ConnectValidator()
         {
-            if (Validator==null)
+            if (Validator == null)
                 RegExArgumentValidator<T>.SetValidator(this);
         }
 
@@ -126,10 +96,16 @@ namespace Simplified.System.Commandline
         public bool Empty { get; set; }
         public string ErrorMessage { get; set; }
 
-        public bool IsErrorOrEmpty => Empty || ErrorMessage != String.Empty;
+        public bool IsErrorOrEmpty => (Empty && !AllowEmpty) || !(String.IsNullOrEmpty(ErrorMessage));
 
         public ValidateSymbolResult<ArgumentResult> Validator { get; set; }
         public int ValidationMaxMatches { get; set; } = 1;
+
+        public Type typeOf => typeof(T);
+
+        public IAsTypedValue NullOrValue => new AsTypedValue<T>(Value);
+
+        public bool AllowEmpty { get; set; } = false;
     }
 
     public struct FirstParamResult
@@ -159,10 +135,20 @@ namespace Simplified.System.Commandline
             return new FirstParamResult(argInfo?.Value ?? String.Empty, !argInfo?.IsErrorOrEmpty ?? true);
         }
 
+        private static void VerifyIndexesAreSet(IEnumerable<IParameterInfo> argInfo)
+        {
+            var paramsWithUnsetIndex = argInfo
+                .Where(a => a.Index == 0)
+                .Select(a => a.Name);
 
+            if (paramsWithUnsetIndex.Count() > 1)
+                throw new ArgumentException($"Property 'Index' has not been supplied for arguments {string.Join(",", paramsWithUnsetIndex)} ");
+
+        }
 
         public static RootCommand ExtractParameters(string[] args, IEnumerable<IParameterInfo> argInfo)
         {
+            VerifyIndexesAreSet(argInfo);
             var cmd = new RootCommand();
             var sorted = argInfo.OrderBy(i => i.Index);
             foreach (var info in sorted)
@@ -173,8 +159,6 @@ namespace Simplified.System.Commandline
                     cmd.AddArgument(info.Arg);
                 }
             }
-            
-                
             cmd.Invoke(args);
             return cmd;
         }
@@ -204,33 +188,40 @@ namespace Simplified.System.Commandline
                          info.Value = arg.GetValueOrDefault<T>();
                          if (info.Value != null)
                          {
-
-                             if (info.ValidationExpression == null)
+                             if (String.IsNullOrEmpty(info.ValidationExpression))
+                             {
                                  info.Empty = false;
+                             }
                              else
                              {
                                  var cValue = Convert.ToString(info.Value);
-                                 if (cValue != null)
+                                 if (!String.IsNullOrEmpty(cValue))
                                  {
+                                     info.Empty = false;
                                      var matches = info.ValidationRegex?.Matches(cValue);
                                      if (matches?.Count == 1)
-                                         info.Empty = false;
+                                     {
+                                         arg.ErrorMessage = null;
+                                     }
                                      else
                                      {
-                                         info.ErrorMessage = $"{info.ValidationMessage} [Regex Validator]";
+                                         info.ErrorMessage = $"{String.Format(info.ValidationMessage, info.Name)} [Regex Validator]";
                                          arg.ErrorMessage = info.ErrorMessage;
                                      }
                                  }
                              }
                          }
+                         if (!info.AllowEmpty && info.NullOrValue.IsNullOrEmpty())
+                         {
+                             info.ErrorMessage = $"{String.Format(info.ValidationMessage, info.Name)} [Empty Not Allowed]";
+                             arg.ErrorMessage = info.ErrorMessage;
+                         }
                      };
                 info.CommandLineArgument?.AddValidator(info.Validator);
-                
+
 
             }
 
         }
-
-
     }
 }

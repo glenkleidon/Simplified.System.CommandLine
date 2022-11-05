@@ -4,8 +4,46 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
     <Title>Simplified Command Line</Title>
-    <IncludeSymbols>False</IncludeSymbols>
+    <IncludeSymbols>True</IncludeSymbols>
+    <ProduceReferenceAssembly>True</ProduceReferenceAssembly>
+    <GenerateDocumentationFile>True</GenerateDocumentationFile>
+    <SignAssembly>True</SignAssembly>
+    <Description>A Simplied wrapper for the Microsoft System.CommandLine Package</Description>
+    <Copyright>Glen Kleidon</Copyright>
+    <PackageProjectUrl>https://github.com/glenkleidon/Simplified.System.CommandLine</PackageProjectUrl>
+    <AssemblyVersion>1.0.0.1</AssemblyVersion>
+    <FileVersion>1.0.0.1</FileVersion>
+    <PackageTags>validation;command line;System.CommandLine;command-line-api;cmd line; cmd line arguments;cmd line parameter</PackageTags>
+    <PackageReleaseNotes>Limited Implementation supporting only Command line Arguments (no options)</PackageReleaseNotes>
+    <SymbolPackageFormat>symbols.nupkg</SymbolPackageFormat>
+    <RepositoryUrl>https://github.com/glenkleidon/Simplified.System.CommandLine</RepositoryUrl>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <DelaySign>False</DelaySign>
+    <AssemblyOriginatorKeyFile>C:\Users\glen\glen_key.snk</AssemblyOriginatorKeyFile>
+    <PackageId>$(AssemblyName)-beta</PackageId>
+    <PackageLicenseFile>LICENSE</PackageLicenseFile>
   </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <CheckForOverflowUnderflow>True</CheckForOverflowUnderflow>
+    <DebugType>embedded</DebugType>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <CheckForOverflowUnderflow>True</CheckForOverflowUnderflow>
+    <DebugType>embedded</DebugType>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="..\..\LICENSE">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+    <None Include="..\..\README.md">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="System.CommandLine" Version="2.0.0-beta4.22272.1" />
