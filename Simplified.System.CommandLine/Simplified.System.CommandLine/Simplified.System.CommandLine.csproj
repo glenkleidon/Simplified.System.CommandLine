@@ -11,9 +11,9 @@
     <Description>A Simplied wrapper for the Microsoft System.CommandLine Package</Description>
     <Copyright>Glen Kleidon</Copyright>
     <PackageProjectUrl>https://github.com/glenkleidon/Simplified.System.CommandLine</PackageProjectUrl>
-	<VersionPrefix>1.0.1</VersionPrefix>
-    <AssemblyVersion>1.0.1.0</AssemblyVersion>
-    <FileVersion>1.0.1.0</FileVersion>
+	<VersionPrefix>1.0.3</VersionPrefix>
+    <AssemblyVersion>1.0.3.0</AssemblyVersion>
+    <FileVersion>1.0.3.0</FileVersion>
     <PackageTags>validation;command line;System.CommandLine;command-line-api;cmd line; cmd line arguments;cmd line parameter</PackageTags>
     <PackageReleaseNotes>Limited Implementation supporting only Command line Arguments (no options)</PackageReleaseNotes>
     <SymbolPackageFormat>symbols.nupkg</SymbolPackageFormat>
