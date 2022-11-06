@@ -24,6 +24,7 @@
     <PackageId>$(AssemblyName)-beta</PackageId>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
     <Version>$(VersionPrefix)</Version>
+    <ApplicationIcon>Simplified.CommandLine.ico</ApplicationIcon>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
@@ -35,6 +36,10 @@
     <CheckForOverflowUnderflow>True</CheckForOverflowUnderflow>
     <DebugType>embedded</DebugType>
   </PropertyGroup>
+
+  <ItemGroup>
+    <Content Include="Simplified.CommandLine.ico" />
+  </ItemGroup>
 
   <ItemGroup>
     <None Include="..\..\LICENSE">
